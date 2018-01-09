@@ -31,9 +31,10 @@
  */
 +(instancetype) sharedInstance{
     static SKTCaptureHelper* capture = nil;
-    if(capture == nil){
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         capture = [SKTCaptureHelper new];
-    }
+    });
     return capture;
 }
 

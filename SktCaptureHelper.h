@@ -40,9 +40,6 @@
 /** device friendly name */
 @property (strong, readonly) NSString* friendlyName;
 
-/** device type as a string */
-@property (strong, readonly) NSString* deviceTypeString;
-
 /** device type as a SKT Capture device type numeric value */
 @property (readonly) SKTCaptureDeviceType deviceType;
 
