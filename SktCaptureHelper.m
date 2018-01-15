@@ -487,8 +487,8 @@
             if(_deviceManagers != nil){
                 deviceManagers = [[NSMutableArray alloc] initWithArray:_deviceManagers];
                 NSInteger index = 0;
-                for (SKTCaptureHelperDevice* actual in _devices) {
-                    if(actual.guid == deviceInfo.Guid){
+                for (SKTCaptureHelperDevice* actual in _deviceManagers) {
+                    if([actual.guid isEqualToString: deviceInfo.Guid]){
                         removedDeviceManager = [deviceManagers objectAtIndex:index];
                         [deviceManagers removeObjectAtIndex:index];
                         break;
@@ -502,14 +502,13 @@
                     _deviceManagers = nil;
                 }
                 deviceManagers = nil;
-                    if(removedDeviceManager != nil){
+                if(removedDeviceManager != nil){
                     [removedDeviceManager.captureDevice closeWithCompletionHandler:^(SKTResult result) {
                         if(_currentDelegate != nil){
-                            if([_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDevice:withResult:)] == TRUE){
+                            if([_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDeviceManager:withResult:)] == TRUE){
                                 [_currentDelegate didNotifyRemovalForDeviceManager:removedDeviceManager withResult:result];
                             }
                         }
-                        //removedDeviceManager = nil;
                     }];
                 }
             }
