@@ -19,8 +19,6 @@
     NSArray* _delegatesStack;
     id<SKTCaptureHelperDelegate> _currentDelegate;
     SKTCapture* _capture;
-    bool _softScanPending;
-    bool _softScanTrigger;
     NSArray* _devices;
     NSArray* _deviceManagers;
 }
@@ -43,7 +41,12 @@
  * being pushed is the one receiving the notification.
  *
  * If the delegate on top of the stack is the same as the delegate
- * it will added like if it was a different delegate.
+ * the pushDelegate will not affect the delegates stack.
+ *
+ * If one or more devices are already connected by the time the
+ * pushDelegate is called, then didNotifyArrivalForDevice:withResult:
+ * and didNotifyArrivalForDeviceManager:withResult: are called
+ * so that the new view is aware of what are the devices available.
  */
 -(void)pushDelegate:(id<SKTCaptureHelperDelegate>) delegate{
     NSMutableArray* stack;
@@ -58,11 +61,20 @@
         _currentDelegate = delegate;
         _delegatesStack = stack;
         stack = nil;
+        
+        // send notification for all the devices that are already
+        // in the list to this new delegate
+        for(SKTCaptureHelperDevice* d in _devices) {
+            if([delegate respondsToSelector:@selector(didNotifyArrivalForDevice:withResult:)] == TRUE){
+                [delegate didNotifyArrivalForDevice:d withResult:SKTCaptureE_NOERROR];
+            }
+        }
+        for(SKTCaptureHelperDeviceManager* d in _deviceManagers) {
+            if([delegate respondsToSelector:@selector(didNotifyArrivalForDeviceManager:withResult:)] == TRUE){
+                [delegate didNotifyArrivalForDeviceManager:d withResult:SKTCaptureE_NOERROR];
+            }
+        }
     }
-    // whatever view is pushed, it means SoftScan
-    // is no longer pending
-    _softScanPending = false;
-    _softScanTrigger = false;
 }
 
 /**
@@ -76,39 +88,27 @@
 -(void)popDelegate:(id<SKTCaptureHelperDelegate>) delegate{
     NSMutableArray* stack;
     if(_currentDelegate == delegate){
-        // if SoftScan has been triggered then
-        // SoftScan is now pending
-        // If SoftScan is pending the current view
-        // controller delegate should not be removed from
-        // the delegates stack so it can still receive
-        // the SoftScan decoded data
-        if(_softScanTrigger == true){
-            _softScanPending = true;
+        if(_delegatesStack == nil){
+            stack = [NSMutableArray new];
         }
-        _softScanTrigger = false;
-        if(_softScanPending == false){
-            if(_delegatesStack == nil){
-                stack = [NSMutableArray new];
+        else{
+            stack = [[NSMutableArray alloc]initWithArray:_delegatesStack];
+        }
+        NSInteger count = _delegatesStack.count;
+        if(count > 0){
+            id<SKTCaptureHelperDelegate> newDelegate = [stack objectAtIndex:count -1];
+            [stack removeLastObject];
+            _currentDelegate = newDelegate;
+            if(count - 1 >0){
+                _delegatesStack = stack;
             }
-            else{
-                stack = [[NSMutableArray alloc]initWithArray:_delegatesStack];
+            else {
+                _delegatesStack = nil;
             }
-            NSInteger count = _delegatesStack.count;
-            if(count > 0){
-                id<SKTCaptureHelperDelegate> newDelegate = [stack objectAtIndex:count -1];
-                [stack removeLastObject];
-                _currentDelegate = newDelegate;
-                if(count - 1 >0){
-                    _delegatesStack = stack;
-                }
-                else {
-                    _delegatesStack = nil;
-                }
-                stack = nil;
-            }
-            else{
-                _currentDelegate = nil;
-            }
+            stack = nil;
+        }
+        else{
+            _currentDelegate = nil;
         }
     }
 }
