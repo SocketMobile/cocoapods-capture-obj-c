@@ -134,7 +134,7 @@
                 block(result);
             }
             if(!SKTSUCCESS(result)) {
-                _capture = nil;
+                self->_capture = nil;
             }
         }];
     } else {
@@ -395,19 +395,19 @@
                     device.captureDevice = deviceCapture;
                     NSMutableArray* devices;
                     @synchronized (self) {
-                        if(_devices != nil){
-                            devices = [[NSMutableArray alloc] initWithArray:_devices];
+                        if(self->_devices != nil){
+                            devices = [[NSMutableArray alloc] initWithArray:self->_devices];
                         } else {
                             devices = [NSMutableArray new];
                         }
                         [devices addObject:device];
-                        _devices = devices;
+                        self->_devices = devices;
                     }
                     devices = nil;
                 }
-                if(_currentDelegate != nil){
-                    if([_currentDelegate respondsToSelector:@selector(didNotifyArrivalForDevice:withResult:)] == TRUE){
-                        [_currentDelegate didNotifyArrivalForDevice:device withResult:result];
+                if(self->_currentDelegate != nil){
+                    if([self->_currentDelegate respondsToSelector:@selector(didNotifyArrivalForDevice:withResult:)] == TRUE){
+                        [self->_currentDelegate didNotifyArrivalForDevice:device withResult:result];
                     }
                 }
             }];
@@ -441,9 +441,9 @@
                 }
                 devices = nil;
                 [removedDevice.captureDevice closeWithCompletionHandler:^(SKTResult result) {
-                    if(_currentDelegate != nil){
-                        if([_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDevice:withResult:)] == TRUE){
-                            [_currentDelegate didNotifyRemovalForDevice:removedDevice withResult:result];
+                    if(self->_currentDelegate != nil){
+                        if([self->_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDevice:withResult:)] == TRUE){
+                            [self->_currentDelegate didNotifyRemovalForDevice:removedDevice withResult:result];
                         }
                     }
                     //removedDevice = nil;
@@ -459,19 +459,19 @@
                 deviceManager.captureDevice = deviceCapture;
                 if(SKTSUCCESS(result)){
                     NSMutableArray* deviceManagers;
-                    if(_deviceManagers !=  nil){
-                        deviceManagers = [[NSMutableArray alloc] initWithArray:_deviceManagers];
+                    if(self->_deviceManagers !=  nil){
+                        deviceManagers = [[NSMutableArray alloc] initWithArray:self->_deviceManagers];
                     }
                     else {
                         deviceManagers = [NSMutableArray new];
                     }
                     [deviceManagers addObject:deviceManager];
-                    _deviceManagers = deviceManagers;
+                    self->_deviceManagers = deviceManagers;
                     deviceManagers = nil;
                 }
-                if(_currentDelegate!=nil){
-                    if([_currentDelegate respondsToSelector:@selector(didNotifyArrivalForDeviceManager:withResult:)] == TRUE){
-                        [_currentDelegate didNotifyArrivalForDeviceManager:deviceManager withResult:result];
+                if(self->_currentDelegate!=nil){
+                    if([self->_currentDelegate respondsToSelector:@selector(didNotifyArrivalForDeviceManager:withResult:)] == TRUE){
+                        [self->_currentDelegate didNotifyArrivalForDeviceManager:deviceManager withResult:result];
                     }
                 }
             }];
@@ -504,9 +504,9 @@
                 deviceManagers = nil;
                 if(removedDeviceManager != nil){
                     [removedDeviceManager.captureDevice closeWithCompletionHandler:^(SKTResult result) {
-                        if(_currentDelegate != nil){
-                            if([_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDeviceManager:withResult:)] == TRUE){
-                                [_currentDelegate didNotifyRemovalForDeviceManager:removedDeviceManager withResult:result];
+                        if(self->_currentDelegate != nil){
+                            if([self->_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDeviceManager:withResult:)] == TRUE){
+                                [self->_currentDelegate didNotifyRemovalForDeviceManager:removedDeviceManager withResult:result];
                             }
                         }
                     }];
