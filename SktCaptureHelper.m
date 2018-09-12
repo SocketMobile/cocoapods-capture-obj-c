@@ -19,6 +19,7 @@
     NSArray* _delegatesStack;
     id<SKTCaptureHelperDelegate> _currentDelegate;
     SKTCapture* _capture;
+    NSInteger _openCount;
     NSArray* _devices;
     NSArray* _deviceManagers;
 }
@@ -133,11 +134,14 @@
             if(block != nil){
                 block(result);
             }
-            if(!SKTSUCCESS(result)) {
+            if(SKTSUCCESS(result)) {
+                self->_openCount ++;
+            } else {
                 self->_capture = nil;
             }
         }];
     } else {
+        self->_openCount++;
         if(block != nil){
             block(SKTCaptureE_NOERROR);
         }
@@ -153,12 +157,20 @@
  */
 -(void)closeWithCompletionHandler:(void(^)(SKTResult result)) block{
     if (_capture != nil) {
-        [_capture closeWithCompletionHandler:^(SKTResult result) {
+        _openCount -= 1;
+        if(_openCount <= 0){
+            [_capture closeWithCompletionHandler:^(SKTResult result) {
+                if(block != nil){
+                    block(result);
+                }
+            }];
+            _capture = nil;
+            _openCount = 0;
+        } else {
             if(block != nil){
-                block(result);
+                block(SKTCaptureE_NOERROR);
             }
-        }];
-        _capture = nil;
+        }
     } else {
         if(block != nil){
             block(SKTCaptureE_NOERROR);

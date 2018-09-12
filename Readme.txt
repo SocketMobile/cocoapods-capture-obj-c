@@ -1,6 +1,6 @@
 ================================================================================
 
-                      Capture SDK Version 1.0.151
+                      Capture SDK Version 1.0.341
 
 
                             Socket Mobile, Inc.
@@ -19,7 +19,6 @@ Content
 6) Device Notifications (Battery Level)
 7) SoftScan
 8) Closing Capture
-9) Known issues
 
 Appendix A. Changes log
 
@@ -166,7 +165,7 @@ libCaptureServiceDirect.a files.
 ----------------
 
 The Capture is described in greater detail in the
-http://docs.socketmobile.com/capture-preview/ios/en/latest/ document.
+https://docs.socketmobile.com/capture/ios/en/latest/ document.
 A brief description follows.
 
 The recommended way of using Capture is by using CaptureHelper.
@@ -322,17 +321,6 @@ scanner then the application delegate can simply be removed and the application
 will no longer receive any event from the scanner until it sets its delegate
 back again.
 
-9. Known issues
----------------
-
-9.1 Long delay when closing Capture while a scanner is connected
-----------------------------------------------------------------
-There is a long delay (about 10s) when closing Capture while there is a scanner
-connected. The close callback should be used in order to know when Capture has
-been correctly close. The Result of closing Capture while a scanner is connected
-is set to ESKT_WAITTIMEDOUT when such delay in closing Capture occurs.
-This issue will be addressed in the future release.
-
 
 Appendix A. Changes log
 -----------------------
@@ -377,3 +365,12 @@ Appendix A. Changes log
   . Move the Capture.xml config file out of the application Documents folder.
 
   . Fix crash occurring when cancelling the pairing of a D600.
+
+1.0.341
+  . Fix the 10s delay when closing Capture while a scanner is connected.
+
+  . Added new Socket product types
+
+  . Better handling when opening and closing Capture multiple times.
+
+  . Compiled with Xcode 9.4.
