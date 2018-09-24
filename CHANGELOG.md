@@ -1,6 +1,31 @@
 # Change Log
 This file tracks released versions with the changes made to this project.
 
+## [Version 1.1.6](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.6)
+### New
+  * D600 support for data format (Tag ID or NDEF Data)
+
+  * D600 API for connected and disconnected timeout support
+
+  * D600 API for stand configuration
+
+  * D600 API for UI controls (BEEP, LED†, VIBRATE)
+    † the LED is not fully operational on D600.
+
+  * D600 API for device specific command. A firmware command can be sent
+    directly through Capture API
+
+### Improvements
+  * Add a trace if the application is missing the Socket Mobile device protocol string
+
+  * Add stability of using D600 by adding a separate event when sending and confirming
+    a D600 command.
+
+### Bug fixes
+  * Fix the BLE misused API, the device manager presence follows the Bluetooth radio state
+
+  * Fix D600 reading tag data that are longer than 19 bytes
+
 ## [Version 1.0.341](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.0.341)
 ### New
   * Added new Socket product types
