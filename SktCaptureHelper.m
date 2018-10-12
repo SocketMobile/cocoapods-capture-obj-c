@@ -48,9 +48,13 @@
  * pushDelegate is called, then didNotifyArrivalForDevice:withResult:
  * and didNotifyArrivalForDeviceManager:withResult: are called
  * so that the new view is aware of what are the devices available.
+ *
+ * Returns : true if the delegate has been added, false
+ * otherwise.
  */
--(void)pushDelegate:(id<SKTCaptureHelperDelegate>) delegate{
+-(bool)pushDelegate:(id<SKTCaptureHelperDelegate>) delegate{
     NSMutableArray* stack;
+    bool hasBeenAdded = false;
     if(_currentDelegate != delegate){
         if(_delegatesStack == nil){
             stack = [NSMutableArray new];
@@ -62,6 +66,7 @@
         _currentDelegate = delegate;
         _delegatesStack = stack;
         stack = nil;
+        hasBeenAdded = true;
         
         // send notification for all the devices that are already
         // in the list to this new delegate
@@ -76,6 +81,7 @@
             }
         }
     }
+    return hasBeenAdded;
 }
 
 /**
@@ -85,33 +91,38 @@
  *
  * If it does not match with delegate provided in argument
  * then nothing happen.
+ *
+ * Returns : true if the delegate has been removed, false
+ * otherwise.
  */
--(void)popDelegate:(id<SKTCaptureHelperDelegate>) delegate{
+-(bool)popDelegate:(id<SKTCaptureHelperDelegate>) delegate{
     NSMutableArray* stack;
+    bool hasBeenRemoved = false;
     if(_currentDelegate == delegate){
+        _currentDelegate = nil;
+        hasBeenRemoved = true;
         if(_delegatesStack == nil){
             stack = [NSMutableArray new];
         }
         else{
             stack = [[NSMutableArray alloc]initWithArray:_delegatesStack];
         }
-        NSInteger count = _delegatesStack.count;
+        NSInteger count = stack.count;
         if(count > 0){
-            id<SKTCaptureHelperDelegate> newDelegate = [stack objectAtIndex:count -1];
             [stack removeLastObject];
-            _currentDelegate = newDelegate;
-            if(count - 1 >0){
+            count = stack.count;
+            if(count > 0){
+                id<SKTCaptureHelperDelegate> newDelegate = [stack objectAtIndex:count -1];
+                _currentDelegate = newDelegate;
                 _delegatesStack = stack;
             }
             else {
                 _delegatesStack = nil;
             }
-            stack = nil;
         }
-        else{
-            _currentDelegate = nil;
-        }
+        stack = nil;
     }
+    return hasBeenRemoved;
 }
 
 /**

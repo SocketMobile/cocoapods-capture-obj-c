@@ -1,4 +1,4 @@
-# Capture SDK Version 1.1.6
+# Capture SDK Version 1.1.24
 
 Socket Mobile is a leading innovator of data capture and delivery solutions for
 enhanced productivity.
@@ -43,7 +43,7 @@ your project is `myProject`:
 
 ```ruby
         target 'myProject'
-          pod 'SKTCaptureObjC', '~> 1.0'
+          pod 'SKTCaptureObjC', '~> 1.1'
 ```
 
 Once you have saved this file, from the terminal command prompt, type the
@@ -140,7 +140,7 @@ onDecodedData delegate.
 
 ### Summary for integrating Capture in Xcode project is a simple 6 steps process:
 
-1. Add `pod 'SKTCaptureObjC', '~>1.0'` in the file Podfile located at the same
+1. Add `pod 'SKTCaptureObjC', '~>1.1'` in the file Podfile located at the same
 level than the application .xcproj file.
 Make sure this file first line is giving the name of the application .xcproj
 file: `target 'myProject'`.
@@ -166,7 +166,7 @@ the controller derived to handle the various Capture asynchronous events.
 Example of Podfile for SingleEntry app:
 ```ruby
   target SingleEntry
-    pod 'SKTCaptureObjC', '~>1.0'
+    pod 'SKTCaptureObjC', '~>1.1'
 ```
 
 Example of ViewController.m for SingleEntry app:
@@ -285,7 +285,7 @@ compatible with the Capture SDK.
 The device can be configured to the **Application mode** by using the [Socket
 Mobile Companion app](https://itunes.apple.com/us/app/socket-mobile-companion/id1175638950?mt=8 "Socket Mobile Companion").
 
-You can also refer to the [documentation](https://docs.socketmobile.com/capture/ios/en/latest/ConfigureInAppMode.html "Configure and connect scanner") for instructions without using Companion. 
+You can also refer to the [documentation](https://docs.socketmobile.com/capture/ios/en/latest/ConfigureInAppMode.html "Configure and connect scanner") for instructions without using Companion.
 
 
 **SUMMARY**

@@ -481,8 +481,11 @@
  *
  * If the delegate on top of the stack is the same as the delegate
  * it will added like if it was a different delegate.
+ *
+ * returns true if the delegate has been added, false
+ * otherwise.
  */
--(void)pushDelegate:(id<SKTCaptureHelperDelegate>) delegate;
+-(bool)pushDelegate:(id<SKTCaptureHelperDelegate>) delegate;
 
 /**
  * pop a delegate from the delegates stack. The last delegate
@@ -491,8 +494,11 @@
  *
  * If it does not match with delegate provided in argument
  * then nothing happen.
+ *
+ * returns true if the delegate has been removed, false
+ * otherwise.
  */
--(void)popDelegate:(id<SKTCaptureHelperDelegate>) delegate;
+-(bool)popDelegate:(id<SKTCaptureHelperDelegate>) delegate;
 
 
 #pragma mark - SKTCaptureHelper Open and Close
