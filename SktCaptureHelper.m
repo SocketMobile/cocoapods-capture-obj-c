@@ -375,7 +375,7 @@
             SKTCaptureHelperDevice* device = [SKTCaptureHelper retrieveDeviceFromCaptureDevice:capture fromList:_devices];
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didChangeButtonsState:forDevice:)] == TRUE){
-                    [_currentDelegate didChangeButtonsState:event.Data.ULongValue forDevice:device];
+                    [_currentDelegate didChangeButtonsState:event.Data.ByteValue forDevice:device];
                 }
             }
         }
