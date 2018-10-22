@@ -1,11 +1,19 @@
 # Change Log
 This file tracks released versions with the changes made to this project.
 
-## [Version 1.1.31](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.31)
+## [Version 1.1.33](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.33)
 ### New
   n/a
 ### Improvements
   n/a
+### Bug fixes
+  * Fix the previous release 1.1.31 where the armv7 and arm64 architecture were missing
+
+## [Version 1.1.31](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.31)
+### New
+  n/a
+### Improvements
+  Officially build with Xcode 10
 ### Bug fixes
   * Fix the button notifications that were always reporting a 0 as value for buttons pressed
 
