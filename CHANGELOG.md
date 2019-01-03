@@ -1,6 +1,29 @@
 # Change Log
 This file tracks released versions with the changes made to this project.
 
+## [Version 1.1.148](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.148)
+### New
+  * Add a device type for the S840
+
+  * Add a Dispatch Queue property in CaptureHelper to keep the code simpler when handling
+  UI modification in a completion handler.
+
+  * Add a Get and Set Data Format for D600
+
+  * Add a None state in SKTCaptureButtonsState
+
+### Improvements
+  * Make sure there is no pending requests for a device when closing Capture
+
+  * Prevent Auto-Discovery when D600 disconnects while closing Capture
+
+  * Disconnect the D600 when closing Capture
+
+### Bug fixes
+  * Fix the warning: non-portable path to file "SktCapture.h"
+  
+  * Fix a crash that occurred sometimes when setting or getting a device property
+
 ## [Version 1.1.33](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.33)
 ### New
   n/a

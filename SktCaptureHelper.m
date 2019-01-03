@@ -22,6 +22,7 @@
     NSInteger _openCount;
     NSArray* _devices;
     NSArray* _deviceManagers;
+    __weak dispatch_queue_t _dispatchQueue;
 }
 
 /**
@@ -36,6 +37,27 @@
     });
     return capture;
 }
+
+/**
+ * set the dispatch queue used by Capture when invoking
+ * delegates and completion handlers
+ *
+ * If Capture Helper dispatch queue is set to the main queue
+ * then UI controls can be updated directly from the Capture Helper
+ * delegates and completion handlers.
+ */
+-(void) setDispatchQueue:(__weak dispatch_queue_t) queue {
+    self->_dispatchQueue = queue;
+}
+
+/**
+ * retrieve the dispatch queue used by Capture when invoking
+ * delegates and completion handlers
+ */
+-(__weak dispatch_queue_t) getDispatchQueue {
+    return self->_dispatchQueue;
+}
+
 
 /**
  * push a delegate in the delegates stack. The last delegate
@@ -143,7 +165,9 @@
         [_capture setDelegate:self];
         [_capture openWithAppInfo:appInfo completionHandler:^(SKTResult result) {
             if(block != nil){
-                block(result);
+                [self callBlockInRightContext:^{
+                    block(result);
+                }];
             }
             if(SKTSUCCESS(result)) {
                 self->_openCount ++;
@@ -154,7 +178,9 @@
     } else {
         self->_openCount++;
         if(block != nil){
-            block(SKTCaptureE_NOERROR);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_NOERROR);
+            }];
         }
     }
 }
@@ -179,12 +205,16 @@
             _openCount = 0;
         } else {
             if(block != nil){
-                block(SKTCaptureE_NOERROR);
+                [self callBlockInRightContext:^{
+                    block(SKTCaptureE_NOERROR);
+                }];
             }
         }
     } else {
         if(block != nil){
-            block(SKTCaptureE_NOERROR);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_NOERROR);
+            }];
         }
     }
 }
@@ -217,12 +247,16 @@
                 version = complete.Version;
             }
             if(block != nil){
-                block(result, version);
+                [self callBlockInRightContext:^{
+                    block(result, version);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, nil);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, nil);
+            }];
         }
     }
 }
@@ -245,12 +279,16 @@
                 confirmation = complete.ByteValue;
             }
             if(block != nil){
-                block(result, confirmation);
+                [self callBlockInRightContext:^{
+                    block(result, confirmation);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, SKTCaptureDataConfirmationModeOff);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, SKTCaptureDataConfirmationModeOff);
+            }];
         }
     }
 }
@@ -267,14 +305,19 @@
         property.ID = SKTCapturePropertyIDDataConfirmationMode;
         property.Type = SKTCapturePropertyTypeByte;
         property.ByteValue = confirmationMode;
+        __weak typeof(self) weakSelf = self;
         [_capture setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -297,12 +340,16 @@
                 status = complete.ByteValue;
             }
             if(block != nil){
-                block(result, status);
+                [self callBlockInRightContext:^{
+                    block(result, status);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, SKTCaptureSoftScanNotSupported);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, SKTCaptureSoftScanNotSupported);
+            }];
         }
     }
 }
@@ -321,14 +368,19 @@
         property.ID = SKTCapturePropertyIDSoftScanStatus;
         property.Type = SKTCapturePropertyTypeByte;
         property.ByteValue = status;
+        __weak typeof(self) weakSelf = self;
         [_capture setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -355,7 +407,9 @@
         {
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didReceiveError:withMessage:)] == TRUE){
-                    [_currentDelegate didReceiveError:result withMessage:event.Data.StringValue];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didReceiveError:result withMessage:event.Data.StringValue];
+                    }];
                 }
             }
         }
@@ -365,7 +419,9 @@
             SKTCaptureHelperDevice* device = [SKTCaptureHelper retrieveDeviceFromCaptureDevice:capture fromList:_devices];
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didChangePowerState:forDevice:)] == TRUE){
-                    [_currentDelegate didChangePowerState:event.Data.ULongValue forDevice:device];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didChangePowerState:event.Data.ULongValue forDevice:device];
+                    }];
                 }
             }
         }
@@ -375,7 +431,9 @@
             SKTCaptureHelperDevice* device = [SKTCaptureHelper retrieveDeviceFromCaptureDevice:capture fromList:_devices];
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didChangeButtonsState:forDevice:)] == TRUE){
-                    [_currentDelegate didChangeButtonsState:event.Data.ByteValue forDevice:device];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didChangeButtonsState:event.Data.ByteValue forDevice:device];
+                    }];
                 }
             }
         }
@@ -384,7 +442,9 @@
         {
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didTerminateWithResult:)] == TRUE){
-                    [_currentDelegate didTerminateWithResult:result];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didTerminateWithResult:result];
+                    }];
                 }
             }
         }
@@ -394,7 +454,9 @@
             SKTCaptureHelperDevice* device = [SKTCaptureHelper retrieveDeviceFromCaptureDevice:capture fromList:_devices];
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didReceiveDecodedData:fromDevice:withResult:)] == TRUE){
-                    [_currentDelegate didReceiveDecodedData:event.Data.DecodedData fromDevice:device withResult:result];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didReceiveDecodedData:event.Data.DecodedData fromDevice:device withResult:result];
+                    }];
                 }
             }
         }
@@ -404,7 +466,9 @@
             SKTCaptureHelperDevice* device = [SKTCaptureHelper retrieveDeviceFromCaptureDevice:capture fromList:_devices];
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didChangeBatteryLevel:forDevice:withResult:)] == TRUE){
-                    [_currentDelegate didChangeBatteryLevel:(long)event.Data.ULongValue forDevice:device withResult:result];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didChangeBatteryLevel:(long)event.Data.ULongValue forDevice:device withResult:result];
+                    }];
                 }
             }
         }
@@ -412,7 +476,7 @@
         case SKTCaptureEventIDDeviceArrival:
         {
             SKTCaptureHelperDevice* device = [[SKTCaptureHelperDevice alloc] initWithDeviceInfo:event.Data.DeviceInfo];
-
+            [device setDispatchQueue: self->_dispatchQueue];
             [_capture openDeviceWithGuid:device.guid completionHandler:^(SKTResult result, SKTCapture *deviceCapture) {
                 if(SKTSUCCESS(result)){
                     device.captureDevice = deviceCapture;
@@ -430,7 +494,9 @@
                 }
                 if(self->_currentDelegate != nil){
                     if([self->_currentDelegate respondsToSelector:@selector(didNotifyArrivalForDevice:withResult:)] == TRUE){
-                        [self->_currentDelegate didNotifyArrivalForDevice:device withResult:result];
+                        [self callBlockInRightContext:^{
+                            [self->_currentDelegate didNotifyArrivalForDevice:device withResult:result];
+                        }];
                     }
                 }
             }];
@@ -466,7 +532,9 @@
                 [removedDevice.captureDevice closeWithCompletionHandler:^(SKTResult result) {
                     if(self->_currentDelegate != nil){
                         if([self->_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDevice:withResult:)] == TRUE){
-                            [self->_currentDelegate didNotifyRemovalForDevice:removedDevice withResult:result];
+                            [self callBlockInRightContext:^{
+                                [self->_currentDelegate didNotifyRemovalForDevice:removedDevice withResult:result];
+                            }];
                         }
                     }
                     //removedDevice = nil;
@@ -477,7 +545,7 @@
         case SKTCaptureEventIDDeviceManagerArrival:
         {
             SKTCaptureHelperDeviceManager* deviceManager = [[SKTCaptureHelperDeviceManager alloc] initWithDeviceInfo:event.Data.DeviceInfo];
-
+            [deviceManager setDispatchQueue:self->_dispatchQueue];
             [_capture openDeviceWithGuid:deviceManager.guid completionHandler:^(SKTResult result, SKTCapture *deviceCapture) {
                 deviceManager.captureDevice = deviceCapture;
                 if(SKTSUCCESS(result)){
@@ -494,7 +562,9 @@
                 }
                 if(self->_currentDelegate!=nil){
                     if([self->_currentDelegate respondsToSelector:@selector(didNotifyArrivalForDeviceManager:withResult:)] == TRUE){
-                        [self->_currentDelegate didNotifyArrivalForDeviceManager:deviceManager withResult:result];
+                        [self callBlockInRightContext:^{
+                            [self->_currentDelegate didNotifyArrivalForDeviceManager:deviceManager withResult:result];
+                        }];
                     }
                 }
             }];
@@ -529,7 +599,9 @@
                     [removedDeviceManager.captureDevice closeWithCompletionHandler:^(SKTResult result) {
                         if(self->_currentDelegate != nil){
                             if([self->_currentDelegate respondsToSelector:@selector(didNotifyRemovalForDeviceManager:withResult:)] == TRUE){
-                                [self->_currentDelegate didNotifyRemovalForDeviceManager:removedDeviceManager withResult:result];
+                                [self callBlockInRightContext:^{
+                                    [self->_currentDelegate didNotifyRemovalForDeviceManager:removedDeviceManager withResult:result];
+                                }];
                             }
                         }
                     }];
@@ -545,7 +617,9 @@
         case SKTCaptureEventIDListenerStarted:
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(listenerDidStart)] == TRUE){
-                    [_currentDelegate listenerDidStart];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate listenerDidStart];
+                    }];
                 }
             }
             break;
@@ -554,7 +628,9 @@
             SKTCaptureHelperDeviceManager* deviceManager = (SKTCaptureHelperDeviceManager*)[SKTCaptureHelper retrieveDeviceFromCaptureDevice:capture fromList:_deviceManagers];
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didDiscoverDevice:fromDeviceManager:)] == TRUE){
-                    [_currentDelegate didDiscoverDevice:event.Data.StringValue fromDeviceManager:deviceManager];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didDiscoverDevice:event.Data.StringValue fromDeviceManager:deviceManager];
+                    }];
                 }
             }
         }
@@ -564,7 +640,9 @@
             SKTCaptureHelperDeviceManager* deviceManager = (SKTCaptureHelperDeviceManager*)[SKTCaptureHelper retrieveDeviceFromCaptureDevice:capture fromList:_deviceManagers];
             if(_currentDelegate!=nil){
                 if([_currentDelegate respondsToSelector:@selector(didDiscoveryEndWithResult:fromDeviceManager:)] == TRUE){
-                    [_currentDelegate didDiscoveryEndWithResult:event.Data.ULongValue fromDeviceManager:deviceManager];
+                    [self callBlockInRightContext:^{
+                        [self->_currentDelegate didDiscoveryEndWithResult:event.Data.ULongValue fromDeviceManager:deviceManager];
+                    }];
                 }
             }
         }
@@ -573,12 +651,25 @@
             break;
     }
 }
+
+#pragma mark - call block in the right context
+-(void)callBlockInRightContext:(void(^)(void)) block {
+    if(self->_dispatchQueue != nil  ){
+        dispatch_async(self->_dispatchQueue, ^{
+            block();
+        });
+    } else {
+        block();
+    }
+}
+
 @end
 
 #pragma mark - SKTCaptureHelperDevice
 
 @implementation SKTCaptureHelperDevice {
     SKTCaptureDeviceInfo* _deviceInfo;
+    __weak dispatch_queue_t _dispatchQueue;
 }
 
 #pragma mark - Initialization
@@ -591,6 +682,14 @@
         _guid = deviceInfo.Guid;
     }
     return self;
+}
+#pragma mark - dispatch queue context
+-(void) setDispatchQueue:(__weak dispatch_queue_t)dispatchQueue {
+    self->_dispatchQueue = dispatchQueue;
+}
+
+-(__weak dispatch_queue_t) getDispatchQueue {
+    return self->_dispatchQueue;
 }
 
 #pragma mark - Device Information
@@ -607,12 +706,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, complete.StringValue);
+                [self callBlockInRightContext:^{
+                    block(result, complete.StringValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, nil);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, nil);
+            }];
         }
     }
 }
@@ -631,14 +734,19 @@
         property.ID = SKTCapturePropertyIDFriendlyNameDevice;
         property.Type = SKTCapturePropertyTypeString;
         property.StringValue = name;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -656,13 +764,22 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                NSArray *array = [NSKeyedUnarchiver unarchiveObjectWithData:complete.ArrayValue];
-                block(result, array);
+                NSMutableArray *array = [NSMutableArray new];
+                uint8_t* pBytes = (uint8_t*)complete.ArrayValue.bytes;
+                for(NSUInteger i=0; i<complete.ArrayValue.length;i++){
+                    NSNumber* value = [NSNumber numberWithInt:(int)pBytes[i]];
+                    [array addObject:value];
+                }
+                [self callBlockInRightContext:^{
+                    block(result, array);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, nil);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, nil);
+            }];
         }
     }
 }
@@ -679,12 +796,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, (SKTCaptureDeviceType)complete.ULongValue);
+                [self callBlockInRightContext:^{
+                    block(result, (SKTCaptureDeviceType)complete.ULongValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureDeviceType)0);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureDeviceType)0);
+            }];
         }
     }
 }
@@ -701,12 +822,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, complete.Version);
+                [self callBlockInRightContext:^{
+                    block(result, complete.Version);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, nil);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, nil);
+            }];
         }
     }
 }
@@ -728,12 +853,16 @@
             if(block != nil){
                 NSInteger level = 0;
                 level = [SKTHelper getCurrentLevelFromBatteryLevel:complete.ULongValue];
-                block(result, level);
+                [self callBlockInRightContext:^{
+                    block(result, level);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, 0);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, 0);
+            }];
         }
     }
 }
@@ -753,12 +882,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, (SKTCapturePowerState)complete.ULongValue);
+                [self callBlockInRightContext:^{
+                    block(result, (SKTCapturePowerState)complete.ULongValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, (SKTCapturePowerState)0);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, (SKTCapturePowerState)0);
+            }];
         }
     }
 }
@@ -778,12 +911,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, (SKTCaptureButtonsState)complete.ULongValue);
+                [self callBlockInRightContext:^{
+                    block(result, (SKTCaptureButtonsState)complete.ULongValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureButtonsState)0);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureButtonsState)0);
+            }];
         }
     }
 }
@@ -802,12 +939,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, (SKTCaptureStandConfig)complete.ULongValue);
+                [self callBlockInRightContext:^{
+                    block(result, (SKTCaptureStandConfig)complete.ULongValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, SKTCaptureStandConfigMobileMode);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, SKTCaptureStandConfigMobileMode);
+            }];
         }
     }
 }
@@ -824,14 +965,19 @@
         property.ID = SKTCapturePropertyIDStandConfigDevice;
         property.Type = SKTCapturePropertyTypeUlong;
         property.ULongValue = (long)config;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -849,12 +995,16 @@
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
                 SKTCaptureLocalDecodeAction action = (SKTCaptureLocalDecodeAction)complete.ByteValue;
-                block(result, action);
+                [self callBlockInRightContext:^{
+                    block(result, action);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, 0);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, 0);
+            }];
         }
     }
 }
@@ -871,14 +1021,19 @@
         property.ID = SKTCapturePropertyIDLocalDecodeActionDevice;
         property.Type = SKTCapturePropertyTypeByte;
         property.ByteValue = decodeAction;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -895,12 +1050,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, complete.ULongValue);
+                [self callBlockInRightContext:^{
+                    block(result, complete.ULongValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, 0);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, 0);
+            }];
         }
     }
 }
@@ -917,14 +1076,19 @@
         property.ID = SKTCapturePropertyIDLocalAcknowledgmentDevice;
         property.Type = SKTCapturePropertyTypeByte;
         property.ByteValue = dataAcknowledgment;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -943,12 +1107,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, complete.StringValue);
+                [self callBlockInRightContext:^{
+                    block(result, complete.StringValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, nil);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, nil);
+            }];
         }
     }
 }
@@ -965,14 +1133,19 @@
         property.ID = SKTCapturePropertyIDPostambleDevice;
         property.Type = SKTCapturePropertyTypeString;
         property.StringValue = postamble;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -992,12 +1165,16 @@
         property.DataSource.Flags = SKTCaptureDataSourceFlagsStatus;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, complete.DataSource);
+                [self callBlockInRightContext:^{
+                    block(result, complete.DataSource);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, nil);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, nil);
+            }];
         }
     }
 }
@@ -1017,14 +1194,19 @@
         property.DataSource.ID = dataSource.ID;
         property.DataSource.Flags = dataSource.Flags;
         property.DataSource.Status = dataSource.Status;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -1045,14 +1227,19 @@
         property.ID = SKTCapturePropertyIDTriggerDevice;
         property.Type = SKTCapturePropertyTypeByte;
         property.ByteValue = trigger;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -1080,14 +1267,19 @@
         property.ID = SKTCapturePropertyIDDataConfirmationDevice;
         property.Type = SKTCapturePropertyTypeUlong;
         property.ULongValue = [SKTHelper getDataComfirmationWithReserve:0 withRumble:rumble withBeep:beep withLed:led];
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -1106,14 +1298,19 @@
         property.ID = SKTCapturePropertyIDNotificationsDevice;
         property.Type = SKTCapturePropertyTypeUlong;
         property.ULongValue = (long)notifications;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -1130,12 +1327,16 @@
         property.Type = SKTCapturePropertyTypeNone;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, (SKTCaptureNotifications)complete.ULongValue);
+                [self callBlockInRightContext:^{
+                    block(result, (SKTCaptureNotifications)complete.ULongValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureNotifications)0);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureNotifications)0);
+            }];
         }
     }
 }
@@ -1160,12 +1361,16 @@
         property.ArrayValue = command;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result, complete.ArrayValue);
+                [self callBlockInRightContext:^{
+                    block(result, complete.ArrayValue);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, nil);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, nil);
+            }];
         }
     }
 }
@@ -1183,18 +1388,89 @@
         property.ID = SKTCapturePropertyIDOverlayViewDevice;
         property.Type = SKTCapturePropertyTypeObject;
         property.Object = overlay;
+        __weak typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
 
+#pragma mark - Data Format (D600 Reading data from card)
+/**
+ * Set a data format to the device
+ *
+ * Examples:
+ * ID-Only, TagType-and-ID, Data-Only, TagType-and-Data
+ * NOTE: Only tagType-and-ID , TagType-and-Data formats are accepted. The other two will purposely return an error
+ */
+-(void)setDataFormat:(SKTCaptureDataFormat)dataFormat completionHandler:(void(^)(SKTResult result)) block {
+    if(_captureDevice != nil) {
+        SKTCaptureProperty* property = [SKTCaptureProperty new];
+        property.ID = SKTCapturePropertyIDDataFormatDevice;
+        property.Type = SKTCapturePropertyTypeByte;
+        property.ByteValue = (UInt8)dataFormat;
+        __weak typeof(self) weakSelf = self;
+        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+            if(block != nil) {
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
+            }
+        }];
+    } else {
+        if(block != nil) {
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
+        }
+    }
+}
+
+/**
+ * Get current data format from the device
+ *
+ */
+-(void)getDataFormatWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataFormat dataFormat)) block {
+    if(_captureDevice != nil) {
+        SKTCaptureProperty* property = [SKTCaptureProperty new];
+        property.ID = SKTCapturePropertyIDDataFormatDevice;
+        property.Type = SKTCaptureDeviceTypeNone;
+        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+            if(block != nil) {
+                [self callBlockInRightContext:^{
+                    block(result, (SKTCaptureDataFormat)complete.ByteValue);
+                }];
+            }
+        }];
+    } else {
+        if(block != nil) {
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureDataFormat)0);
+            }];
+        }
+    }
+}
+
+#pragma mark - call block in the right context
+-(void)callBlockInRightContext:(void(^)(void)) block {
+    if(self->_dispatchQueue != nil  ){
+        dispatch_async(self->_dispatchQueue, ^{
+            block();
+        });
+    } else {
+        block();
+    }
+}
 @end
 
 #pragma mark - SKTCaptureHelperDeviceManager
@@ -1216,9 +1492,12 @@
         property.ID = SKTCapturePropertyIDStartDiscovery;
         property.Type = SKTCapturePropertyTypeUlong;
         property.ULongValue = timeInMilliseconds;
+        __weak typeof(self) weakSelf = self;
         [self.captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
@@ -1243,14 +1522,19 @@
         property.ID = SKTCapturePropertyIDFavorite;
         property.Type = SKTCapturePropertyTypeString;
         property.StringValue = favorites;
+        __weak typeof(self) weakSelf = self;
         [self.captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
-                block(result);
+                [weakSelf callBlockInRightContext:^{
+                    block(result);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE);
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE);
+            }];
         }
     }
 }
@@ -1273,12 +1557,16 @@
                 favorite = complete.StringValue;
             }
             if(block != nil){
-                block(result, favorite);
+                [self callBlockInRightContext:^{
+                    block(result, favorite);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, @"");
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, @"");
+            }];
         }
     }
 }
@@ -1303,12 +1591,16 @@
                 favorite = complete.StringValue;
             }
             if(block != nil){
-                block(result, favorite);
+                [self callBlockInRightContext:^{
+                    block(result, favorite);
+                }];
             }
         }];
     } else {
         if(block != nil) {
-            block(SKTCaptureE_INVALIDHANDLE, @"");
+            [self callBlockInRightContext:^{
+                block(SKTCaptureE_INVALIDHANDLE, @"");
+            }];
         }
     }
 }

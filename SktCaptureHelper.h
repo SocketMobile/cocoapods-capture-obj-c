@@ -7,7 +7,7 @@
 */
 
 #import <Foundation/Foundation.h>
-#import "SktCapture.h"
+#import "SKTCapture.h"
 
 #pragma mark - SKTCaptureHelperDevice to handle a device
 /**
@@ -52,6 +52,24 @@
 #pragma mark - Initialization
 /** initialize the device with the device information coming from Device Arrival notification */
 -(instancetype)initWithDeviceInfo:(SKTCaptureDeviceInfo*)deviceInfo;
+
+/**
+ * set the dispatch queue used by Capture when invoking
+ * delegates and completion handlers
+ *
+ * If Capture Helper dispatch queue is set to the main queue
+ * then UI controls can be updated directly from the Capture Helper
+ * delegates and completion handlers.
+ */
+-(void) setDispatchQueue:(__weak dispatch_queue_t) queue;
+
+/**
+ * retrieve the dispatch queue used by Capture when invoking
+ * delegates and completion handlers
+ */
+-(__weak dispatch_queue_t) getDispatchQueue;
+
+
 #pragma mark - Device Information
 /**
  *  retrieve the device friendly name
@@ -274,6 +292,24 @@
  */
 -(void)setOverlayView:(NSDictionary*)overlay completionHandler:(void(^)(SKTResult result)) block;
 
+
+#pragma mark - Data Format (D600 Reading data from card)
+/**
+ * Set a data format to the device
+ *
+ * Examples:
+ * ID-Only, TagType-and-ID, Data-Only, TagType-and-Data
+ * NOTE: Only tagType-and-ID , TagType-and-Data formats are accepted. The other two will purposely return an error
+ */
+-(void)setDataFormat:(SKTCaptureDataFormat)dataFormat completionHandler:(void(^)(SKTResult result)) block;
+
+/**
+ * Get current data format from the device
+ *
+ */
+-(void)getDataFormatWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataFormat dataFormat)) block;
+
+
 @end
 #pragma mark - SKTCaptureHelperDeviceManager
 /**
@@ -467,11 +503,29 @@
      */
     NSDictionary* _extensionProperties;
 }
+
 /**
  * instantiate a capture helper for the entire app
  * @return a unique capture helper instance
  */
 +(instancetype) sharedInstance;
+
+#pragma mark - Queue context for delegates and completion handlers
+/**
+ * set the dispatch queue used by Capture when invoking
+ * delegates and completion handlers
+ *
+ * If Capture Helper dispatch queue is set to the main queue
+ * then UI controls can be updated directly from the Capture Helper
+ * delegates and completion handlers.
+ */
+-(void) setDispatchQueue:(__weak dispatch_queue_t) queue;
+
+/**
+ * retrieve the dispatch queue used by Capture when invoking
+ * delegates and completion handlers
+ */
+-(__weak dispatch_queue_t) getDispatchQueue;
 
 #pragma mark - Delegates Stack to handle View hierarchy
 
