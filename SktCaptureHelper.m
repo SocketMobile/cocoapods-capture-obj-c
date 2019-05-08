@@ -198,7 +198,9 @@
         if(_openCount <= 0){
             [_capture closeWithCompletionHandler:^(SKTResult result) {
                 if(block != nil){
-                    block(result);
+                    [self callBlockInRightContext:^{
+                        block(result);
+                    }];
                 }
             }];
             _capture = nil;
@@ -237,18 +239,115 @@
  * with the result and the version as argument.
  */
 -(void)getVersionWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureVersion* version)) block{
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDVersion;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        SKTCaptureVersion* version = nil;
+        if(SKTSUCCESS(result)){
+            version = complete.Version;
+        }
+        if(block != nil){
+            block(result, version);
+        }
+    }];
+}
+
+/**
+ * retrieve the confirmation mode used to configure how the decoded data
+ * are confirmed.
+ *
+ * @param block called upon completion of getting the confirmation mode
+ * with the result and the confirmation mode as argument.
+ */
+-(void)getConfirmationModeWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataConfirmation confirmationMode)) block{
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataConfirmationMode;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        SKTCaptureDataConfirmation confirmation = SKTCaptureDataConfirmationModeOff;
+        if(SKTSUCCESS(result)){
+            confirmation = (SKTCaptureDataConfirmation)complete.ByteValue;
+        }
+        if(block != nil){
+            block(result, confirmation);
+        }
+    }];
+}
+
+/**
+ * set the confirmation mode to define how the decoded data should be confirmed.
+ *
+ * @param block called upon completion of setting the confirmation mode
+ * with the result of setting the confirmation mode.
+ */
+-(void)setConfirmationMode:(SKTCaptureDataConfirmation)confirmationMode completionHandler:(void(^)(SKTResult result)) block{
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataConfirmationMode;
+    property.Type = SKTCapturePropertyTypeByte;
+    property.ByteValue = confirmationMode;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
+        }
+    }];
+}
+
+/**
+ * retrieve the SoftScan (Scanning using the host camera) status. The status could
+ * be "not supported", "supported", "disabled" and "enabled".
+ *
+ * @param block called upon completion of getting the SoftScan status with
+ * result and SoftScan status as argument.
+ */
+-(void)getSoftScanStatusWithConfirmationHandler: (void(^)(SKTResult result, SKTCaptureSoftScan status)) block{
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDSoftScanStatus;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        SKTCaptureSoftScan status = SKTCaptureSoftScanNotSupported;
+        if (SKTSUCCESS(result)) {
+            status = complete.ByteValue;
+        }
+        if(block != nil){
+            block(result, status);
+        }
+    }];
+}
+
+/**
+ * set the SoftScan (Scanning using the host camera) status. The status could
+ * be "not supported", "supported", "disabled" and "enabled".
+ *
+ * @param status contains the new SoftScan status.
+ * @param block called upon completion of setting the SoftScan status with the
+ * result as argument.
+ */
+-(void)setSoftScanStatus:(SKTCaptureSoftScan) status completionHandler:(void(^)(SKTResult result)) block{
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDSoftScanStatus;
+    property.Type = SKTCapturePropertyTypeByte;
+    property.ByteValue = status;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
+        }
+    }];
+}
+
+#pragma mark - Generic Get and Set property methods
+/*
+ * get property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper methods.
+ */
+-(void)getProperty:(SKTCaptureProperty*) property completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* complete)) block{
     if(_capture != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDVersion;
-        property.Type = SKTCapturePropertyTypeNone;
+        __weak __typeof(self) weakSelf = self;
         [_capture getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            SKTCaptureVersion* version = nil;
-            if(SKTSUCCESS(result)){
-                version = complete.Version;
-            }
             if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, version);
+                [weakSelf callBlockInRightContext:^{
+                    block(result, complete);
                 }];
             }
         }];
@@ -261,129 +360,30 @@
     }
 }
 
-/**
- * retrieve the confirmation mode used to configure how the decoded data
- * are confirmed.
- *
- * @param block called upon completion of getting the confirmation mode
- * with the result and the confirmation mode as argument.
+/*
+ * set property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper methods.
  */
--(void)getConfirmationModeWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataConfirmation confirmationMode)) block{
+-(void)setProperty:(SKTCaptureProperty*) property completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* complete)) block{
     if(_capture != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataConfirmationMode;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_capture getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            SKTCaptureDataConfirmation confirmation = SKTCaptureDataConfirmationModeOff;
-            if(SKTSUCCESS(result)){
-                confirmation = complete.ByteValue;
-            }
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, confirmation);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, SKTCaptureDataConfirmationModeOff);
-            }];
-        }
-    }
-}
-
-/**
- * set the confirmation mode to define how the decoded data should be confirmed.
- *
- * @param block called upon completion of setting the confirmation mode
- * with the result of setting the confirmation mode.
- */
--(void)setConfirmationMode:(SKTCaptureDataConfirmation)confirmationMode completionHandler:(void(^)(SKTResult result)) block{
-    if(_capture != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataConfirmationMode;
-        property.Type = SKTCapturePropertyTypeByte;
-        property.ByteValue = confirmationMode;
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof(self) weakSelf = self;
         [_capture setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
                 [weakSelf callBlockInRightContext:^{
-                    block(result);
+                    block(result, complete);
                 }];
             }
         }];
     } else {
         if(block != nil) {
             [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
+                block(SKTCaptureE_INVALIDHANDLE, nil);
             }];
         }
     }
 }
 
-/**
- * retrieve the SoftScan (Scanning using the host camera) status. The status could
- * be "not supported", "supported", "disabled" and "enabled".
- *
- * @param block called upon completion of getting the SoftScan status with
- * result and SoftScan status as argument.
- */
--(void)getSoftScanStatusWithConfirmationHandler: (void(^)(SKTResult result, SKTCaptureSoftScan status)) block{
-    if(_capture != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDSoftScanStatus;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_capture getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            SKTCaptureSoftScan status = SKTCaptureSoftScanNotSupported;
-            if(SKTSUCCESS(result)){
-                status = complete.ByteValue;
-            }
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, status);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, SKTCaptureSoftScanNotSupported);
-            }];
-        }
-    }
-}
-
-/**
- * set the SoftScan (Scanning using the host camera) status. The status could
- * be "not supported", "supported", "disabled" and "enabled".
- *
- * @param status contains the new SoftScan status.
- * @param block called upon completion of setting the SoftScan status with the
- * result as argument.
- */
--(void)setSoftScanStatus:(SKTCaptureSoftScan) status completionHandler:(void(^)(SKTResult result)) block{
-    if(_capture != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDSoftScanStatus;
-        property.Type = SKTCapturePropertyTypeByte;
-        property.ByteValue = status;
-        __weak typeof(self) weakSelf = self;
-        [_capture setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
-        }
-    }
-}
 #pragma mark - Utility methods
 +(SKTCaptureHelperDevice*)retrieveDeviceFromCaptureDevice:(SKTCapture*)capture fromList:(NSArray*) devices {
     SKTCaptureHelperDevice* device = nil;
@@ -700,24 +700,18 @@
  *  the device if the result is successful
  */
 -(void)getFriendlyNameWithCompletionHandler:(void(^)(SKTResult result, NSString* name)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDFriendlyNameDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, complete.StringValue);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDFriendlyNameDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            NSString* name = nil;
+            if (result == SKTCaptureE_NOERROR) {
+                name = complete.StringValue;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, nil);
-            }];
+            block(result, name);
         }
-    }
+    }];
 }
 
 /**
@@ -729,26 +723,15 @@
  *  @param block receiving the result of setting the new friendly name
  */
 -(void)setFriendlyName:(NSString*) name completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDFriendlyNameDevice;
-        property.Type = SKTCapturePropertyTypeString;
-        property.StringValue = name;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDFriendlyNameDevice;
+    property.Type = SKTCapturePropertyTypeString;
+    property.StringValue = name;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 /**
@@ -758,30 +741,23 @@
  *  is successful
  */
 -(void)getBluetoothAddressWithCompletionHandler:(void(^)(SKTResult result, NSArray* address)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDBluetoothAddressDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                NSMutableArray *array = [NSMutableArray new];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDBluetoothAddressDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            NSMutableArray *array = nil;
+            if (result == SKTCaptureE_NOERROR) {
+                array = [NSMutableArray new];
                 uint8_t* pBytes = (uint8_t*)complete.ArrayValue.bytes;
                 for(NSUInteger i=0; i<complete.ArrayValue.length;i++){
                     NSNumber* value = [NSNumber numberWithInt:(int)pBytes[i]];
                     [array addObject:value];
                 }
-                [self callBlockInRightContext:^{
-                    block(result, array);
-                }];
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, nil);
-            }];
+            block(result, array);
         }
-    }
+    }];
 }
 
 /**
@@ -790,24 +766,18 @@
  *  @param block receiving the result and the device Type if the result is successful
  */
 -(void)getTypeWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDeviceType deviceType)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDeviceType;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, (SKTCaptureDeviceType)complete.ULongValue);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDeviceType;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            SKTCaptureDeviceType type = (SKTCaptureDeviceType)0;
+            if (result == SKTCaptureE_NOERROR){
+                type = (SKTCaptureDeviceType)complete.ULongValue;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureDeviceType)0);
-            }];
+            block(result, type);
         }
-    }
+    }];
 }
 
 /**
@@ -816,24 +786,18 @@
  *  @param block receiving the result and the device Firmware version if the result is successful
  */
 -(void)getFirmwareVersionWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureVersion* version)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDVersionDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, complete.Version);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDVersionDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            SKTCaptureVersion* ver = nil;
+            if (result == SKTCaptureE_NOERROR) {
+                ver = complete.Version;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, nil);
-            }];
+            block(result, ver);
         }
-    }
+    }];
 }
 
 /**
@@ -845,26 +809,16 @@
  *  @param block receiving the result and the device battery level if the result is successful
  */
 -(void)getBatteryLevelWithCompletionHandler:(void(^)(SKTResult result, NSInteger levelInPercentage)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDBatteryLevelDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                NSInteger level = 0;
-                level = [SKTHelper getCurrentLevelFromBatteryLevel:complete.ULongValue];
-                [self callBlockInRightContext:^{
-                    block(result, level);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, 0);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDBatteryLevelDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        NSInteger level = 0;
+        if (result == SKTCaptureE_NOERROR) {
+            level = [SKTHelper getCurrentLevelFromBatteryLevel:complete.ULongValue];
         }
-    }
+        block(result, level);
+    }];
 }
 
 /**
@@ -876,24 +830,16 @@
  *  @param block receiving the result and the device power state if the result is successful
  */
 -(void)getPowerStateWithCompletionHandler:(void(^)(SKTResult result, SKTCapturePowerState powerState)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDPowerStateDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, (SKTCapturePowerState)complete.ULongValue);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, (SKTCapturePowerState)0);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDPowerStateDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        SKTCapturePowerState state = (SKTCapturePowerState)0;
+        if (result == SKTCaptureE_NOERROR){
+            state = (SKTCapturePowerState)complete.ULongValue;
         }
-    }
+        block(result, state);
+    }];
 }
 
 
@@ -905,24 +851,16 @@
  *  @param block receiving the result and the device buttons state if the result is successful
  */
 -(void)getButtonsStateWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureButtonsState buttonsState)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDButtonsStatusDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, (SKTCaptureButtonsState)complete.ULongValue);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureButtonsState)0);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDButtonsStatusDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        SKTCaptureButtonsState state = (SKTCaptureButtonsState)0;
+        if (result == SKTCaptureE_NOERROR) {
+            state = (SKTCaptureButtonsState)complete.ULongValue;
         }
-    }
+        block(result, state);
+    }];
 }
 
 #pragma mark - Behaviour Configuration
@@ -933,24 +871,18 @@
  *  @param block receiving the result and the device stand configuration if the result is successful
  */
 -(void)getStandConfigWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureStandConfig config)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDStandConfigDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, (SKTCaptureStandConfig)complete.ULongValue);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDStandConfigDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            SKTCaptureStandConfig config = SKTCaptureStandConfigMobileMode;
+            if (result == SKTCaptureE_NOERROR) {
+                config = (SKTCaptureStandConfig)complete.ULongValue;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, SKTCaptureStandConfigMobileMode);
-            }];
+            block(result, config);
         }
-    }
+    }];
 }
 
 /**
@@ -960,26 +892,15 @@
  *  @param block receiving the result of changing the device stand configuration
  */
 -(void)setStandConfig:(SKTCaptureStandConfig)config completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDStandConfigDevice;
-        property.Type = SKTCapturePropertyTypeUlong;
-        property.ULongValue = (long)config;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDStandConfigDevice;
+    property.Type = SKTCapturePropertyTypeUlong;
+    property.ULongValue = (long)config;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 /**
@@ -988,25 +909,18 @@
  *  @param block receiving the result and the device decode action if the result is successful
  */
 -(void)getDecodeActionWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureLocalDecodeAction decodeAction)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDLocalDecodeActionDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                SKTCaptureLocalDecodeAction action = (SKTCaptureLocalDecodeAction)complete.ByteValue;
-                [self callBlockInRightContext:^{
-                    block(result, action);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDLocalDecodeActionDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            SKTCaptureLocalDecodeAction action = (SKTCaptureLocalDecodeAction)0;
+            if (result == SKTCaptureE_NOERROR) {
+                action = (SKTCaptureLocalDecodeAction)complete.ByteValue;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, 0);
-            }];
+            block(result, action);
         }
-    }
+    }];
 }
 
 /**
@@ -1016,26 +930,15 @@
  *  @param block receiving the result of changing the device decode action
  */
 -(void)setDecodeAction:(SKTCaptureLocalDecodeAction)decodeAction completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDLocalDecodeActionDevice;
-        property.Type = SKTCapturePropertyTypeByte;
-        property.ByteValue = decodeAction;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDLocalDecodeActionDevice;
+    property.Type = SKTCapturePropertyTypeByte;
+    property.ByteValue = decodeAction;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 /**
@@ -1044,24 +947,18 @@
  *  @param block receiving the result and the device local acknowledgment if the result is successful
  */
 -(void)getDataAcknowledgmentWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDeviceDataAcknowledgment dataAcknowledgment)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataConfirmationDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, complete.ULongValue);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, 0);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataConfirmationDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        SKTCaptureDeviceDataAcknowledgment ack = (SKTCaptureDeviceDataAcknowledgment)0;
+        if (result == SKTCaptureE_NOERROR) {
+            ack = (SKTCaptureDeviceDataAcknowledgment)complete.ULongValue;
         }
-    }
+        if (block != nil) {
+            block(result, ack);
+        }
+    }];
 }
 
 /**
@@ -1071,26 +968,15 @@
  *  @param block receiving the result of changing the device stand configuration
  */
 -(void)setDataAcknowledgment:(SKTCaptureDeviceDataAcknowledgment)dataAcknowledgment completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDLocalAcknowledgmentDevice;
-        property.Type = SKTCapturePropertyTypeByte;
-        property.ByteValue = dataAcknowledgment;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDLocalAcknowledgmentDevice;
+    property.Type = SKTCapturePropertyTypeByte;
+    property.ByteValue = dataAcknowledgment;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 #pragma mark - Decoded Data
@@ -1101,24 +987,18 @@
  *  @param block receiving the result and the device postamble if the result is successful
  */
 -(void)getPostambleWithCompletionHandler:(void(^)(SKTResult result, NSString* postamble)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDPostambleDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, complete.StringValue);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDPostambleDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            NSString* value = nil;
+            if(result == SKTCaptureE_NOERROR){
+                value = complete.StringValue;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, nil);
-            }];
+            block(result, value);
         }
-    }
+    }];
 }
 
 /**
@@ -1128,26 +1008,15 @@
  *  @param block receiving the result of changing the device postamble
  */
 -(void)setPostamble:(NSString*) postamble completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDPostambleDevice;
-        property.Type = SKTCapturePropertyTypeString;
-        property.StringValue = postamble;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDPostambleDevice;
+    property.Type = SKTCapturePropertyTypeString;
+    property.StringValue = postamble;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 /**
@@ -1156,27 +1025,21 @@
  * @param block receiving the result and the device data source information if the result is successful
  */
 -(void)getDataSourceInfo:(SKTCaptureDataSourceID) dataSourceId completionHandler:(void(^)(SKTResult result, SKTCaptureDataSource* dataSource)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataSourceDevice;
-        property.Type = SKTCapturePropertyTypeDataSource;
-        property.DataSource = [SKTCaptureDataSource new];
-        property.DataSource.ID = dataSourceId;
-        property.DataSource.Flags = SKTCaptureDataSourceFlagsStatus;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, complete.DataSource);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataSourceDevice;
+    property.Type = SKTCapturePropertyTypeDataSource;
+    property.DataSource = [SKTCaptureDataSource new];
+    property.DataSource.ID = dataSourceId;
+    property.DataSource.Flags = SKTCaptureDataSourceFlagsStatus;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            SKTCaptureDataSource* source = nil;
+            if(result == SKTCaptureE_NOERROR){
+                source = complete.DataSource;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, nil);
-            }];
+            block(result, source);
         }
-    }
+    }];
 }
 
 /**
@@ -1186,29 +1049,18 @@
  * @param block receiving the result of changing the device data source
  */
 -(void)setDataSourceInfo:(SKTCaptureDataSource*) dataSource completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataSourceDevice;
-        property.Type = SKTCapturePropertyTypeDataSource;
-        property.DataSource = [SKTCaptureDataSource new];
-        property.DataSource.ID = dataSource.ID;
-        property.DataSource.Flags = dataSource.Flags;
-        property.DataSource.Status = dataSource.Status;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataSourceDevice;
+    property.Type = SKTCapturePropertyTypeDataSource;
+    property.DataSource = [SKTCaptureDataSource new];
+    property.DataSource.ID = dataSource.ID;
+    property.DataSource.Flags = dataSource.Flags;
+    property.DataSource.Status = dataSource.Status;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 /**
@@ -1222,26 +1074,15 @@
  * @param block receiving the result of setting the trigger
  */
 -(void)setTrigger:(SKTCaptureTrigger)trigger completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDTriggerDevice;
-        property.Type = SKTCapturePropertyTypeByte;
-        property.ByteValue = trigger;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDTriggerDevice;
+    property.Type = SKTCapturePropertyTypeByte;
+    property.ByteValue = trigger;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 /**
@@ -1262,26 +1103,15 @@
  * @param block receiving the result of setting the trigger
  */
 -(void)setDataConfirmationWithLed:(SKTCaptureDataConfirmationLed) led withBeep:(SKTCaptureDataConfirmationBeep) beep withRumble:(SKTCaptureDataConfirmationRumble) rumble completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataConfirmationDevice;
-        property.Type = SKTCapturePropertyTypeUlong;
-        property.ULongValue = [SKTHelper getDataComfirmationWithReserve:0 withRumble:rumble withBeep:beep withLed:led];
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataConfirmationDevice;
+    property.Type = SKTCapturePropertyTypeUlong;
+    property.ULongValue = [SKTHelper getDataComfirmationWithReserve:0 withRumble:rumble withBeep:beep withLed:led];
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 #pragma mark - Notifications
@@ -1293,26 +1123,15 @@
  * @param block receiving the result of setting the notifications
  */
 -(void)setNotifications:(SKTCaptureNotifications)notifications completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDNotificationsDevice;
-        property.Type = SKTCapturePropertyTypeUlong;
-        property.ULongValue = (long)notifications;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDNotificationsDevice;
+    property.Type = SKTCapturePropertyTypeUlong;
+    property.ULongValue = (long)notifications;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
         }
-    }
+    }];
 }
 
 /**
@@ -1321,24 +1140,18 @@
  * @param block receiving the result and the device notifications setting if the result is successful
  */
 -(void)getNotificationsWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureNotifications notifications)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDNotificationsDevice;
-        property.Type = SKTCapturePropertyTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, (SKTCaptureNotifications)complete.ULongValue);
-                }];
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDNotificationsDevice;
+    property.Type = SKTCapturePropertyTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            SKTCaptureNotifications notification = (SKTCaptureNotifications)0;
+            if(result == SKTCaptureE_NOERROR){
+                notification = (SKTCaptureNotifications)complete.ULongValue;
             }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureNotifications)0);
-            }];
+            block(result, notification);
         }
-    }
+    }];
 }
 
 #pragma mark - Advanced Commands
@@ -1354,15 +1167,89 @@
  * @param block receiving the result and the device specific command response if the result is successful
  */
 -(void)getDeviceSpecificCommand:(NSData*) command completionHandler:(void(^)(SKTResult result, NSData* commandResult)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDeviceSpecific;
-        property.Type = SKTCapturePropertyTypeArray;
-        property.ArrayValue = command;
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDeviceSpecific;
+    property.Type = SKTCapturePropertyTypeArray;
+    property.ArrayValue = command;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result, complete.ArrayValue);
+        }
+    }];
+}
+
+#pragma mark - SoftScan (scanner using Camera)
+/**
+ * set the device overlay view
+ *
+ * @param overlay overlay settings
+ * @param block receiving the result of setting the overlay view
+ */
+-(void)setOverlayView:(NSDictionary*)overlay completionHandler:(void(^)(SKTResult result)) block{
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDOverlayViewDevice;
+    property.Type = SKTCapturePropertyTypeObject;
+    property.Object = overlay;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil){
+            block(result);
+        }
+    }];
+}
+
+#pragma mark - Data Format (D600 Reading data from card)
+/**
+ * Set a data format to the device
+ *
+ * Examples:
+ * ID-Only, TagType-and-ID, Data-Only, TagType-and-Data
+ * NOTE: Only tagType-and-ID , TagType-and-Data formats are accepted. The other two will purposely return an error
+ */
+-(void)setDataFormat:(SKTCaptureDataFormat)dataFormat completionHandler:(void(^)(SKTResult result)) block {
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataFormatDevice;
+    property.Type = SKTCapturePropertyTypeByte;
+    property.ByteValue = (UInt8)dataFormat;
+    [self setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil) {
+            block(result);
+        }
+    }];
+}
+
+/**
+ * Get current data format from the device
+ *
+ */
+-(void)getDataFormatWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataFormat dataFormat)) block {
+    SKTCaptureProperty* property = [SKTCaptureProperty new];
+    property.ID = SKTCapturePropertyIDDataFormatDevice;
+    property.Type = SKTCaptureDeviceTypeNone;
+    [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
+        if(block != nil) {
+            SKTCaptureDataFormat format = SKTCaptureDataFormatPacket;
+            if (result == SKTCaptureE_NOERROR) {
+                format = (SKTCaptureDataFormat)complete.ByteValue;
+            }
+            block(result, format);
+        }
+    }];
+}
+
+#pragma mark - generic get and set property
+/*
+ * Get a Device Property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper
+ * device methods.
+ */
+-(void)getProperty:(SKTCaptureProperty*) property  completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* property)) block {
+    if(_captureDevice != nil) {
+        __weak __typeof(self) weakSelf = self;
         [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [self callBlockInRightContext:^{
-                    block(result, complete.ArrayValue);
+            if(block != nil) {
+                [weakSelf callBlockInRightContext:^{
+                    block(result, complete);
                 }];
             }
         }];
@@ -1375,87 +1262,26 @@
     }
 }
 
-#pragma mark - SoftScan (scanner using Camera)
-/**
- * set the device overlay view
- *
- * @param overlay overlay settings
- * @param block receiving the result of setting the overlay view
+/*
+ * Set a Device Property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper
+ * device methods.
  */
--(void)setOverlayView:(NSDictionary*)overlay completionHandler:(void(^)(SKTResult result)) block{
-    if(_captureDevice != nil){
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDOverlayViewDevice;
-        property.Type = SKTCapturePropertyTypeObject;
-        property.Object = overlay;
-        __weak typeof(self) weakSelf = self;
-        [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil){
-                [weakSelf callBlockInRightContext:^{
-                    block(result);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
-        }
-    }
-}
-
-#pragma mark - Data Format (D600 Reading data from card)
-/**
- * Set a data format to the device
- *
- * Examples:
- * ID-Only, TagType-and-ID, Data-Only, TagType-and-Data
- * NOTE: Only tagType-and-ID , TagType-and-Data formats are accepted. The other two will purposely return an error
- */
--(void)setDataFormat:(SKTCaptureDataFormat)dataFormat completionHandler:(void(^)(SKTResult result)) block {
+-(void)setProperty:(SKTCaptureProperty*) property completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* property)) block {
     if(_captureDevice != nil) {
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataFormatDevice;
-        property.Type = SKTCapturePropertyTypeByte;
-        property.ByteValue = (UInt8)dataFormat;
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof(self) weakSelf = self;
         [_captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil) {
                 [weakSelf callBlockInRightContext:^{
-                    block(result);
+                    block(result, complete);
                 }];
             }
         }];
     } else {
         if(block != nil) {
             [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE);
-            }];
-        }
-    }
-}
-
-/**
- * Get current data format from the device
- *
- */
--(void)getDataFormatWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataFormat dataFormat)) block {
-    if(_captureDevice != nil) {
-        SKTCaptureProperty* property = [SKTCaptureProperty new];
-        property.ID = SKTCapturePropertyIDDataFormatDevice;
-        property.Type = SKTCaptureDeviceTypeNone;
-        [_captureDevice getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
-            if(block != nil) {
-                [self callBlockInRightContext:^{
-                    block(result, (SKTCaptureDataFormat)complete.ByteValue);
-                }];
-            }
-        }];
-    } else {
-        if(block != nil) {
-            [self callBlockInRightContext:^{
-                block(SKTCaptureE_INVALIDHANDLE, (SKTCaptureDataFormat)0);
+                block(SKTCaptureE_INVALIDHANDLE, nil);
             }];
         }
     }
@@ -1492,7 +1318,7 @@
         property.ID = SKTCapturePropertyIDStartDiscovery;
         property.Type = SKTCapturePropertyTypeUlong;
         property.ULongValue = timeInMilliseconds;
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof(self) weakSelf = self;
         [self.captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
                 [weakSelf callBlockInRightContext:^{
@@ -1522,7 +1348,7 @@
         property.ID = SKTCapturePropertyIDFavorite;
         property.Type = SKTCapturePropertyTypeString;
         property.StringValue = favorites;
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof(self) weakSelf = self;
         [self.captureDevice setProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
             if(block != nil){
                 [weakSelf callBlockInRightContext:^{

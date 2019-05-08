@@ -309,6 +309,22 @@
  */
 -(void)getDataFormatWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataFormat dataFormat)) block;
 
+#pragma mark - generic get and set property
+/*
+ * Get a Device Property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper
+ * device methods.
+ */
+-(void)getProperty:(SKTCaptureProperty*) property completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* property)) block;
+
+/*
+ * Set a Device Property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper
+ * device methods.
+ */
+-(void)setProperty:(SKTCaptureProperty*) property completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* property)) block;
 
 @end
 #pragma mark - SKTCaptureHelperDeviceManager
@@ -636,6 +652,23 @@
  * result as argument.
  */
 -(void)setSoftScanStatus:(SKTCaptureSoftScan) status completionHandler:(void(^)(SKTResult result)) block;
+
+#pragma mark - generic get and set property
+/*
+ * Get a Capture Property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper
+ * device methods.
+ */
+-(void)getProperty:(SKTCaptureProperty*) property completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* property)) block;
+
+/*
+ * Set a Capture Property
+ * Use this generic method only if the property is
+ * not already provided in the Capture Helper
+ * device methods.
+ */
+-(void)setProperty:(SKTCaptureProperty*) property completionHandler:(void(^)(SKTResult result, SKTCaptureProperty* property)) block;
 
 
 @end

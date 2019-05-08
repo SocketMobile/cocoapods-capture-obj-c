@@ -1,6 +1,28 @@
 # Change Log
 This file tracks released versions with the changes made to this project.
 
+## [Version 1.1.286](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.286)
+### New
+  * compiled with Xcode 10.2.1
+
+  * CaptureHelper and CaptureHelperDevice have now generic getProperty, setProperty methods that could be use for the Capture properties that don't have already a method in CaptureHelper or CaptureHelperDevice
+
+### Improvements
+  * Add a generic get/set properties in CaptureHelper and CaptureHelperDevice so it is easy to extend these classes and it simplifies the code too
+
+  * Empty buffer in iAP protocol when some partial data are received
+
+### Bug fixes
+  * Fix the openWithAppInfo that uses to call twice the block in case of failure
+
+  * Fix the partial decoded data occurring on some scanners when scanning long barcode before the scanner beeps when it is ready
+
+  * Fix the failure to reconnect to the scanner when asking the battery status as soon as the scanner connects
+
+  * Increase the timeout in Capture Service Direct, to be bigger than the Capture property timeout
+
+  * Check if the main capture reference is not nil and neither is its devices list
+
 ## [Version 1.1.148](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.148)
 ### New
   * Add a device type for the S840
@@ -21,7 +43,7 @@ This file tracks released versions with the changes made to this project.
 
 ### Bug fixes
   * Fix the warning: non-portable path to file "SktCapture.h"
-  
+
   * Fix a crash that occurred sometimes when setting or getting a device property
 
 ## [Version 1.1.33](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.33)
