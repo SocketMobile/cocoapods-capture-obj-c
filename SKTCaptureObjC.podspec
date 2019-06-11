@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "SKTCaptureObjC"
-  s.version      = "1.1.286"
+  s.version      = "1.1.296"
   s.summary      = "Capture SDK Objective C for Socket Mobile wireless devices."
   s.homepage     = "http://www.socketmobile.com"
   s.license      = { :type => "COMMERCIAL", :file => "LICENSE" }
@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios, "8.0"
   s.source       = {
       :git => "https://github.com/SocketMobile/cocoapods-capture-obj-c.git",
-      :tag => "1.1.286"
+      :tag => "1.1.296"
   }
   s.ios.deployment_target = "8.0"
   s.source_files  = "**/*.{h,m,mm}"

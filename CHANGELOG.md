@@ -1,6 +1,16 @@
 # Change Log
 This file tracks released versions with the changes made to this project.
 
+## [Version 1.1.296](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.296)
+### New
+  * n/a
+
+### Improvements
+  * D600 Data Store supported
+
+### Bug fixes
+  * n/a
+
 ## [Version 1.1.286](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.286)
 ### New
   * compiled with Xcode 10.2.1
