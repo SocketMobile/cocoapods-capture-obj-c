@@ -1,9 +1,10 @@
 # Change Log
 This file tracks released versions with the changes made to this project.
 
-## [Version 1.1.296](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.296)
+## [Version 1.1.349](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.349)
 ### New
-  * n/a
+  * Added new DotCode symbology
+  * Converted symbologies to dataSources to accomodate D600
 
 ### Improvements
   * D600 Data Store supported
