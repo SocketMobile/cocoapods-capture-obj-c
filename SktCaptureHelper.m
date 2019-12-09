@@ -174,6 +174,13 @@
             } else {
                 self->_capture = nil;
             }
+            
+            if ([appInfo mainBundle] != nil) {
+                if ([_capture canConnectToBarcodeScannersWithBundle:[appInfo mainBundle]] == false) {
+                    NSLog(@"\nIf your application uses a Socket Mobile barcode scanner, you need to add a \"UISupportedExternalAccessoryProtocols\" Array to your Info.plist with \"com.socketmobile.chs\" as an Item in that Array. Otherwise the scanner won't connect to the application.\n");
+                }
+            }
+            
         }];
     } else {
         self->_openCount++;
