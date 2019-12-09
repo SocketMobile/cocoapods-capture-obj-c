@@ -3,6 +3,7 @@ This file tracks released versions with the changes made to this project.
 ## [Version 1.1.380](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.380)
 ### New
 * Added an optional mainBundle parameter to check the application contains the "com.socketmobile.chs" string in its Info.plist. This is necessary for connecting to Socket Mobile barcode readers.
+
 ## [Version 1.1.372](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.1.372)
 ### New
   * Now compatibile with iOS 13.0
