@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.documentation_url   = "https://docs.socketmobile.com/capture/ios/en/latest/"
   s.platform     = :ios, "8.0"
   s.source       = {
-      :git => "ssh://git@git.socketmobile.com/scanning/cocoapods-capture-obj-c.git",
+      :git => "https://github.com/SocketMobile/cocoapods-capture-obj-c.git",
       :tag => "1.2.9"
   }
   s.ios.deployment_target = "8.0"
