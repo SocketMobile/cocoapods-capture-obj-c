@@ -1,5 +1,9 @@
 # Change Log
 This file tracks released versions with the changes made to this project.
+## [Version 1.2.53](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.2.53)
+### Bug Fixes
+* Fix the occasional error -55 when opening Capture
+  
 ## [Version 1.2.36](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.2.36)
 ### Bug Fixes
 * Fixed issue with different decoded data format for S550
