@@ -2,7 +2,13 @@
 
 This file tracks released versions with the changes made to this project.
 
-## [Version 1.3.28](https://github.com/SocketMobile/cocoapods-capture/releases/tag/1.3.28)
+## [Version 1.3.33](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.3.33)
+
+### Bug Fixes
+
+* Fix issue where changing the list of favorited devices would not restart an auto-discovery for new devices that were not previously connected
+
+## [Version 1.3.28](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.3.28)
 
 ### New
 
