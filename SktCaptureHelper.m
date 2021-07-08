@@ -1231,7 +1231,7 @@
 -(void)getDataFormatWithCompletionHandler:(void(^)(SKTResult result, SKTCaptureDataFormat dataFormat)) block {
     SKTCaptureProperty* property = [SKTCaptureProperty new];
     property.ID = SKTCapturePropertyIDDataFormatDevice;
-    property.Type = SKTCaptureDeviceTypeNone;
+    property.Type = SKTCapturePropertyTypeNone;
     [self getProperty:property completionHandler:^(SKTResult result, SKTCaptureProperty *complete) {
         if(block != nil) {
             SKTCaptureDataFormat format = SKTCaptureDataFormatPacket;
