@@ -26,7 +26,7 @@ More documentation can be found [here](https://docs.socketmobile.com/capture/ios
   - [Table of Contents](#table-of-contents)
   - [Quick install notes](#quick-install-notes)
   - [Capture usage](#capture-usage)
-    - [1 getting a CaptureHelper instance](#1-getting-a-capturehelper-instance)
+    - [1 Getting a CaptureHelper instance](#1-getting-a-capturehelper-instance)
     - [2 CaptureHelper delegates stack](#2-capturehelper-delegates-stack)
     - [3 Opening CaptureHelper](#3-opening-capturehelper)
     - [Summary for integrating Capture in Xcode project is a simple 6 steps process](#summary-for-integrating-capture-in-xcode-project-is-a-simple-6-steps-process)
@@ -426,7 +426,7 @@ However, you can follow those steps.
 
    `relative/path/to/your/app/CaptureAPI/SKTCapture.xcframework/ios-arm64_i386_x86_64-simulator/Headers`
 
-7. Add app the following key-value into the Info.plist of your project:
+7. Add the following key-value into the Info.plist of your project:
    Add an item into the `Supported external accessory protocols` key: `com.socketmobile.chs`
 
    ![Info.plist](Docs/Infoplist.jpg)
