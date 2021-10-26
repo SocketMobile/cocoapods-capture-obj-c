@@ -2,6 +2,14 @@
 
 This file tracks released versions with the changes made to this project.
 
+## [Version 1.3.63](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.3.63)
+
+### New
+
+* Fix the warning in CaptureHelper.m about a wrong enum value
+  
+* Add the manual instructions for installing Capture SDK without using Cocoapods
+
 ## [Version 1.3.60](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.3.60)
 
 ### New
