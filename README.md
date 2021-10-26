@@ -20,20 +20,29 @@ test and integrate the SDK even before getting a Socket Mobile scanner, using th
 
 More documentation can be found [here](https://docs.socketmobile.com/capture/ios/en/latest/ "Capture Documentation").
 
-# Table of Contents
-* [Quick install notes](#quick-install-notes)
-* [Capture usage](#capture-usage)
-* [Sample code](#sample-code)
-* [Configure and connect a Socket Mobile device](#configure-and-connect-a-socket-mobile-device)
-* [Device Notifications (Battery Level)](#device-notifications-battery-level)
-* [SoftScan](#softscan)
-* [Closing Capture](#closing-capture)
+## Table of Contents
+
+- [Capture SDK Version 1.3.60](#capture-sdk-version-1360)
+  - [Table of Contents](#table-of-contents)
+  - [Quick install notes](#quick-install-notes)
+  - [Capture usage](#capture-usage)
+    - [1 Getting a CaptureHelper instance](#1-getting-a-capturehelper-instance)
+    - [2 CaptureHelper delegates stack](#2-capturehelper-delegates-stack)
+    - [3 Opening CaptureHelper](#3-opening-capturehelper)
+    - [Summary for integrating Capture in Xcode project is a simple 6 steps process](#summary-for-integrating-capture-in-xcode-project-is-a-simple-6-steps-process)
+  - [Sample code](#sample-code)
+  - [Configure and connect a Socket Mobile device](#configure-and-connect-a-socket-mobile-device)
+  - [Device Notifications (Battery Level)](#device-notifications-battery-level)
+  - [SoftScan](#softscan)
+  - [Closing Capture](#closing-capture)
+  - [Manual installation](#manual-installation)
 
 ## Quick install notes
+
 The Capture SDK is using CocoaPods.
 
 First, you need to install CocoaPods on your machine by following the
-instructions found here: https://guides.cocoapods.org/using/getting-started.html
+instructions found here: <https://guides.cocoapods.org/using/getting-started.html>
 
 To install the SDK to the application you need to create a file named
 `Podfile` in the same folder as your Xcode project is located.
@@ -83,22 +92,25 @@ This registration needs the Socket Mobile developer ID, the application Bundle
 ID (which is case sensitive).
 
 Now you're ready to add `#import 'CaptureHelper.h'` in your main controller, and
-make it derive from <CaptureHelperDelegate>.
+make it derive from `<CaptureHelperDelegate>`.
 
 Go to the CaptureHelperDelegate source and copy paste the delegates you want to
 override, at minimum the onDecodedData delegate in order to be able to
 receive the barcode decoded data in your application.
 
 ## Capture usage
+
 The Capture is described in greater details in the [documentation](https://docs.socketmobile.com/capture/ios/en/latest/ "Capture Documentation").
 
 The recommended way of using Capture is by using CaptureHelper.
 
 ### 1 getting a CaptureHelper instance
+
 CaptureHelper can be instantiated in one of your application controllers using
 its `[SKTCaptureHelper sharedInstance]` static member.
 
 ### 2 CaptureHelper delegates stack
+
 The chosen controller must implement the CaptureHelperDelegate protocol in order
 to receive the various Capture asynchronous events.
 
@@ -112,6 +124,7 @@ new view controller to the CaptureHelper delegates stack, and remove that
 reference when the view is no longer active.
 
 ### 3 Opening CaptureHelper
+
 In order to start Capture, the API for starting using Capture is the
 `openWithAppInfo:completionHandler` method with the application information.
 
@@ -138,7 +151,7 @@ a scanner is connected to the iOS device.
 The decoded data coming from the scanner can be retrieved by overriding the
 onDecodedData delegate.
 
-### Summary for integrating Capture in Xcode project is a simple 6 steps process:
+### Summary for integrating Capture in Xcode project is a simple 6 steps process
 
 1. Add `pod 'SKTCaptureObjC', '~>1.1'` in the file Podfile located at the same
 level than the application .xcproj file.
@@ -164,12 +177,14 @@ Capture.
 the controller derived to handle the various Capture asynchronous events.
 
 Example of Podfile for SingleEntry app:
+
 ```ruby
   target SingleEntry
     pod 'SKTCaptureObjC', '~>1.1'
 ```
 
 Example of ViewController.m for SingleEntry app:
+
 ```objc
   #import "ViewController.h"
   #import "SktCaptureHelper.h"
@@ -210,7 +225,6 @@ Example of ViewController.m for SingleEntry app:
           }
       }];
   }
-
 ```
 
 CaptureHelper makes the application aware of a new device connection by
@@ -220,6 +234,7 @@ representing the device that is connected can be used to retrieve or set a
 device property.
 
 Example of the view controller being aware of the scanner:
+
 ```objc
 -(void)didNotifyArrivalForDevice:(SKTCaptureHelperDevice*) device withResult:(SKTResult) result {
     NSLog(@"didNotifyArrivalForDevice");
@@ -231,10 +246,12 @@ Example of the view controller being aware of the scanner:
     NSLog(@"didNotifyRemovalForDevice");
 }
 ```
+
 If the scanner triggers a scan, the decoded data can be retrieve in the protocol
 function onDecodedData.
 
 Example of retrieving the decoded data received by a scanner:
+
 ```objc
   -(void)didReceiveDecodedData:(SKTCaptureDecodedData*) decodedData
                     fromDevice:(SKTCaptureHelperDevice*) device
@@ -248,6 +265,7 @@ Example of retrieving the decoded data received by a scanner:
       }
   }
 ```
+
 The application can retrieve or modify the device properties by calling the
 various CaptureHelper get/set methods.
 By example there is a method to retrieve the device friendly name:
@@ -265,9 +283,11 @@ Creating a CaptureHelper extension allows to avoid an overwrite of a modified
 version of CaptureHelper when updating to a more recent Capture CocoaPods.
 
 ## Sample code
+
 Sample code can be found in [GitHub / SocketMobile](https://github.com/SocketMobile "Socket Mobile Samples")
 
 ## Configure and connect a Socket Mobile device
+
 This SDK is designed for using all of the Socket Mobile devices on the iOS
 platforms.
 
@@ -279,14 +299,12 @@ messages and functions.
 The API documentation for the SDK can be found
 [here](https://docs.socketmobile.com/capture/ios/en/latest/ "Capture Documentation")
 
-The Socket Mobile devices are shipped by default in **Basic mode** which is **NOT**
-compatible with the Capture SDK.
+The Socket Mobile devices are shipped by default in **Basic mode** which is **NOT** compatible with the Capture SDK.
 
 The device can be configured to the **Application mode** by using the [Socket
 Mobile Companion app](https://itunes.apple.com/us/app/socket-mobile-companion/id1175638950?mt=8 "Socket Mobile Companion").
 
 You can also refer to the [documentation](https://docs.socketmobile.com/capture/ios/en/latest/ConfigureInAppMode.html "Configure and connect scanner") for instructions without using Companion.
-
 
 **SUMMARY**
 
@@ -299,8 +317,10 @@ to be able to connect and communicate with the device:
 3. Verify Bluetooth connected state between iOS and the device
 
 ## Device Notifications (Battery Level)
+
 The Device Notifications can be configured in order to receive a notification
 each time one or more of those events occur:
+
 - Battery Level change,
 - Power State change,
 - Buttons State change.
@@ -322,6 +342,7 @@ an error ESKT_NOTSUPPORTED (-15) is returned when trying to set a notification
 that is not supported.
 
 ## SoftScan
+
 SoftScan feature refers to the capability of using the phone's camera in order to scan
 a barcode.
 The main purpose of integrating this feature in Capture is to provide a
@@ -352,6 +373,7 @@ the same information than as any other Socket Mobile devices supported by
 Capture.
 
 ## Closing Capture
+
 It is not recommended to close Capture because the scanner will go through
 reinitialization the next time Capture is open which causes a delay before being
 able to use the scanner.
@@ -366,3 +388,49 @@ If the motive of closing Capture is to not receive any decoded data from the
 device then the application delegate can simply be removed and the application
 will no longer receive any event from the scanner until it sets its delegate
 back again.
+
+---
+
+## Manual installation
+
+⚠️⚠️⚠️ Manual installation is not advised ⚠️⚠️⚠️
+
+Using the Pod is the good way to include the SDK within your app.
+However, you can follow those steps.
+
+1. Open the [cocoapods-capture-obj-c pod repository](https://github.com/SocketMobile/cocoapods-capture-obj-c) and chose the master branch
+
+2. Open your project
+
+3. In your project, make a CaptureAPI group folder (or any name you prefer)
+
+4. From cocoapods-capture pod, copy the following into your newly created CaptureAPI group:
+
+   - lib/SKTCapture.xcframework
+   - CaptureHelperHelper.h
+   - CaptureHelperHelper.m
+   - socketmobilepublickey.pem,
+   - softScanBeep.wav
+
+5. In Build Phases->Link Binary, add the following:
+
+   - SKTCapture.xcframework (if not added automatically)
+   - libc++.tbd
+   - libicucore.A.tbd
+   - CoreBluetooth.framework
+   - AVFoundation.framework
+   - AudioToolbox.framework
+   - ExternalAccessory.framework
+
+6. In Target->Build Settings, add to the `Header Search Paths` the headers path of the header files of the framework:
+
+   `relative/path/to/your/app/CaptureAPI/SKTCapture.xcframework/ios-arm64_i386_x86_64-simulator/Headers`
+
+7. Add the following key-value into the Info.plist of your project:
+   Add an item into the `Supported external accessory protocols` key: `com.socketmobile.chs`
+
+   ![Info.plist](Docs/Infoplist.jpg)
+
+8. Create your AppKey in your Socket Mobile developer account and apply the app info to your project following the previous instructions.
+
+9. Build and run with scanner connected in Application mode.
