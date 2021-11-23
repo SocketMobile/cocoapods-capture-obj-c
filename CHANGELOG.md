@@ -2,6 +2,12 @@
 
 This file tracks released versions with the changes made to this project.
 
+## [Version 1.3.133](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.3.63)
+
+### New
+  
+* Add the arm64 setting for the simulator
+
 ## [Version 1.3.63](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.3.63)
 
 ### New
