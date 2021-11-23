@@ -15,15 +15,12 @@ Pod::Spec.new do |s|
   s.source_files  = "**/*.{h,m,mm}"
 
   s.public_header_files = "**/*.h"
-  
+
   s.static_framework = true
 
   s.resources = "*.{wav,pem}"
   s.ios.vendored_frameworks = "lib/SKTCapture.xcframework"
-  s.ios.libraries = "c++","icucore"
+  s.ios.libraries = "c++", "icucore"
   s.frameworks = "ExternalAccessory", "AudioToolbox", "AVFoundation", "CoreBluetooth"
-  s.pod_target_xcconfig = {
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64'
-  }
-  s.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
+
 end
