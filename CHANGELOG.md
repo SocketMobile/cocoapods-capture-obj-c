@@ -2,6 +2,10 @@
 
 This file tracks released versions with the changes made to this project.
 
+## [Repository deleted](https://github.com/SocketMobile/cocoapods-capture-obj-c)
+
+* This repository no longer exists. Please use [CaptureSDK Swift Package](https://github.com/SocketMobile/swift-package-capturesdk) or [CaptureSDK Cocoapods](https://github.com/SocketMobile/cocoapods-capturesdk) instead.
+
 ## [Version 1.3.133](https://github.com/SocketMobile/cocoapods-capture-obj-c/releases/tag/1.3.63)
 
 ### New
